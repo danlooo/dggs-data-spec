@@ -11,3 +11,7 @@ The specification about DGGS data format can be accessed [here](./dggs-data-spec
 ## Examples
 
 tba.
+
+## Contributing
+
+Everyone is welcomed to contribute to this repository by opening a Pull Request or by filing an [issue](https://github.com/danlooo/dggs-data-spec/issues/new)
