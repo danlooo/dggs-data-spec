@@ -51,6 +51,8 @@ A cell is the geometry representing the boundaries of a zone.
 The tesselation MUST be unique and complete:
 Each point in geographical space of the surface of the sphere must have one zone identifier.
 
+Cells MUST be the same polygons whenever possible. For example, tesselations of the surface of a icosahedron with hexagons requires to add 12 pentagons.
+
 ## Zone identifier
 
 A Zone identifier is defined in [ISO 19170-1:2020](https://www.iso.org/standard/32588.html).
@@ -68,24 +70,157 @@ Zone identifiers:
 
 ## Zone index
 
-A zone index is a function $I:Z \mapsto M $ mapping zone identifiers $z$ (labels) to numerical memory addresses $m$.
-The zone index function MUST be bijective.
-
+A zone index is a bijective function $I:Z \mapsto M $ mapping all zone identifiers $z \in Z$ (labels) to unique numerical memory addresses $m \in M$.
 The memory adress is a n-tuple of nonnegative integers for n-dimensional zone identifiers.
 It is used in positional access of elements in the data array.
-
 An zone index defines in which order zone values are stored.
 Therefore, it defines the chunking of the data and influence loading time of the values.
-Zones nearby in geographical space SHOULD be also nearby in the zone index space.
 
-There SHOULD be one preferred zone index for each zone indentifier system.
-The zone index SHOULD be compact in memory space i.e. almost all numbers $m$ within $[0, \max(m)]$ SHOULD be used.
+- Zones with similar memory addresses MUST be nearby in geographical space.
+- There SHOULD be one preferred zone index for each zone indentifier system.
+- Zone indicies SHOULD be compact in memory space i.e. almost all numbers $m$ within $[0, \max(m)]$ SHOULD be used. Space filling curves MAY be used here (e.g. Hilbert curve like index in Google S2)
 
-They SHOULD be continious and nearby and ...
+![Net of an icosahedron](assets/icosahedron-net.png)
+**Figure 1**: Merging 2 faces of a polyhedron to one rectangular chart [(Mahdavi-Amiri et al. 2014)](http://dx.doi.org/10.1080/17538947.2014.927597).
 
-## Data cubve
+Memory addresses created by the zone index MUST describe rectangular grids.
+This is just a vector for 1D zone identifieres.
+Moreover, zone identifiers MAY describe zones as their position on the face of a polyhedron (e.g. DGGRID PROJTRI).
+Hereby, the surface of the polyhedron is subdivided in charts that are as rectangular as possible (See Figure 1).
+This allows to store DGGS data in n-dimensional arrays.
 
-## DGGS data cubes
+# TODO
 
-Different temporal resolutions CAN be created as well yielding spatiotemporal DGGS.
+Geotransforms?
+https://gdal.org/tutorials/geotransforms_tut.html
+external calls
+
+## DGGS Data Cube
+
+A (regular) DGGS data cube is an n-dimensional array to store values of variables across the globe.
+The values are arranged on a selected grid and zone index.
+
+There MUST be at least all spatial dimensions present needed for the selected zone identifier.
+Values MUST be sampled in accordance to the selected grid.
+DGGS data cubes are regular, i.e. there MUST NOT be missing values within the global bounding box.
+Values MAY be interpolated.
+
+## DGGS Pyramid
+
+A DGGS data cube pyramid is a collection of DGGS data cubes.
+The only difference of those DGGS data cubes is that they have at meast different spatial resolutiosn.
+Different temporal resolutions MAY be created as well yielding spatiotemporal DGGS.
 Is so, all temporal resolutions MUST be created for all spatial resolutions (cross product).
+
+## DGGS Data Model
+
+```plantuml
+@startuml
+!define COMMENT(x) <color:grey>x</color>
+
+enum Polyhedron {
+    tetrahedron
+    cube
+    octahedron
+    dodecahedron
+    icosahedron
+}
+
+enum Polygon {
+    triangle
+    quadliteral
+    pentagon
+    hexagon
+}
+
+abstract Transformation {
+    COMMENT(Calculate geographical coordinates from indicies)
+    --
+    name: string
+}
+
+
+entity LinearTransformation {
+    COMMENT(Like GDAL geotransform)
+    GT0: float
+    GT1: float
+    GT2: float
+    GT3: float
+    GT4: float
+    GT5: float
+}
+
+LinearTransformation <|-- Transformation
+
+entity ExternalTransformation {
+    COMMENT(External shell call)
+    command: string
+    --
+    name: string
+}
+
+ExternalTransformation <|-- Transformation
+
+entity GridSystem {
+    COMMENT(Recipe to generate spatial grids)
+    polyhedron:Polyhedron
+    radius: fload
+    rotation_lon: float
+    rotation_lat: fload
+    rotation_azimuth: float
+    polygon: Polygon
+    aperture: int
+    projection: string
+    transformations: Transformation[]
+    global_bounding_polygon: Object
+    --
+    name: string
+    command: string
+}
+
+GridSystem ||-- Polyhedron
+GridSystem ||-- Polygon
+
+entity Grid {
+    COMMENT(concrete tesselation)
+    gridSystem: GridSystem
+    resolution: int
+}
+
+Grid ||- GridSystem
+
+
+entity DataCube {
+    COMMENT(Variables sampled at a specific grid)
+    grid: Grid
+    metadata: Object[]
+    data: n-dimensional array
+}
+
+DataCube ||-- Grid
+
+entity Pyramid {
+    COMMENT(Same data at different resolution)
+    COMMENT(within the same grid system)
+    datacubes: DataCube[]
+    resolutions: string[spatial, temporal]
+}
+
+Pyramid }|--  DataCube
+
+@enduml
+```
+
+DGGS data model as an ER diagram.
+Attributes above and below the line are required and optional, respectiveley.
+
+## DGGS file format
+
+A DGGS pyramid is stored as one file by mapping the DGGS pyramid class diagram to the [Common Data Model (CDM) V4](https://docs.unidata.ucar.edu/netcdf-java/current/userguide/common_data_model_overview.html#data-access-layer-object-model).
+This allows to save the DGGS pyramid in various file formats e.g. NetCDF 4, HDF5 and Zarr.
+DGGS data cubes MUST be stored in variables.
+DGGS data cubes having the same temporal resolution MUST be stored in the same CDM group.
+DGGS data cubes with a single spatiotemporal resolution MUST be stored in the root group.
+File names SHOULD contain the phrase `dggs` e.g. `example.dggs.zarr`.
+Required attrbutes MUST be stored as meta data in the files.
+Cloud optimized file formats allowing HTPP range requests e.g. zarr SHOULD be used.
