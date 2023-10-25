@@ -117,6 +117,7 @@ Is so, all temporal resolutions MUST be created for all spatial resolutions (cro
 ```plantuml
 @startuml
 !define COMMENT(x) <color:grey>x</color>
+!define NOTE(x) <color:bluey>x</color>
 
 enum Polyhedron {
     tetrahedron
@@ -171,7 +172,6 @@ entity GridSystem {
     polygon: Polygon
     aperture: int
     projection: string
-    transformations: Transformation[]
     global_bounding_polygon: Object
     --
     name: string
@@ -184,9 +184,11 @@ GridSystem ||-- Polygon
 entity Grid {
     COMMENT(concrete tesselation)
     gridSystem: GridSystem
+    transformations: Transformation[] NOTE([1])
     resolution: int
 }
 
+Grid ||-- Transformation
 Grid ||- GridSystem
 
 
@@ -207,12 +209,15 @@ entity Pyramid {
 }
 
 Pyramid }|--  DataCube
-
 @enduml
 ```
 
 DGGS data model as an ER diagram.
 Attributes above and below the line are required and optional, respectiveley.
+
+Notes:
+
+1.  Grid ISEA7H requires different (alternating) transformations at sucessive resolutions (pointy top vs flat top, Class I vs Class II)
 
 ## DGGS file format
 
