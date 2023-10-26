@@ -89,16 +89,57 @@ Moreover, zone identifiers MAY describe zones as their position on the face of a
 Hereby, the surface of the polyhedron is subdivided in charts that are as rectangular as possible (See Figure 1).
 This allows to store DGGS data in n-dimensional arrays.
 
-# TODO
+# Geotransformation
 
-Geotransforms?
-https://gdal.org/tutorials/geotransforms_tut.html
-external calls
+A geotransformation is a sequence of bijective functions applied to the memory addresses of a DGGS data cube to return the center point of the corresponding cell in geographical coordinates.
+The inverse of the functions will be applied in reversed order to obtain the memory address from given geographical coordinates.
+
+Example with one step of grids produced by DGGRID:
+
+```json
+[
+  {
+    "type": "dggrid",
+    "version": "7.8"
+  }
+]
+```
+
+The identity function MUST be applied is an empty sequence is provided.
+The parameter `type` MUST be provided in every geotransformation call.
+
+Notes:
+
+1.  The sequence is implemented as a JSON list, because JSON dictionaries are unordered.
+
+## DGGRID geotransformation
+
+This will call DGGRID.
+Other required parameters will be inferred from the Grid oject.
+A error message MUST be raised if this was unsuccessful (DGGRID not installed, ambigiuous parameters, missing parameters, etc.)
+
+| name    | type   | description                  |
+| ------- | ------ | ---------------------------- |
+| version | string | Version of DGGRID to be used |
+
+## Linear geotransformation
+
+This is an implementation of [GDAL Geotransform](https://gdal.org/tutorials/geotransforms_tut.html).
+
+| name | type   | description                                                                |
+| ---- | ------ | -------------------------------------------------------------------------- |
+| gt0  | number | x-coordinate of the upper-left corner of the upper-left pixel.             |
+| gt1  | number | w-e pixel resolution / pixel width.                                        |
+| gt2  | number | row rotation (typically zero).                                             |
+| gt3  | number | y-coordinate of the upper-left corner of the upper-left pixel.             |
+| gt4  | number | column rotation (typically zero).                                          |
+| gt5  | number | n-s pixel resolution / pixel height (negative value for a north-up image). |
 
 ## DGGS Data Cube
 
 A (regular) DGGS data cube is an n-dimensional array to store values of variables across the globe.
 The values are arranged on a selected grid and zone index.
+A user focused definition describes (geo) data cubes as a "discretized model of the earth that offers estimated values of certain variables for each partition of the Earth’s surface called a cell" [(OGC 2021)](https://www.ogc.org/initiatives/gdc).
 
 There MUST be at least all spatial dimensions present needed for the selected zone identifier.
 Values MUST be sampled in accordance to the selected grid.
@@ -112,12 +153,14 @@ The only difference of those DGGS data cubes is that they have at meast differen
 Different temporal resolutions MAY be created as well yielding spatiotemporal DGGS.
 Is so, all temporal resolutions MUST be created for all spatial resolutions (cross product).
 
+Resolution is a property of a collection of axes
+
 ## DGGS Data Model
 
 ```plantuml
 @startuml
 !define COMMENT(x) <color:grey>x</color>
-!define NOTE(x) <color:bluey>x</color>
+!define NOTE(x) <color:blue>x</color>
 
 enum Polyhedron {
     tetrahedron
@@ -153,8 +196,8 @@ entity LinearTransformation {
 
 LinearTransformation <|-- Transformation
 
-entity ExternalTransformation {
-    COMMENT(External shell call)
+entity DGGRIDTransformation {
+    COMMENT(External shell call to DGGRID)
     command: string
     --
     name: string
@@ -218,6 +261,17 @@ Attributes above and below the line are required and optional, respectiveley.
 Notes:
 
 1.  Grid ISEA7H requires different (alternating) transformations at sucessive resolutions (pointy top vs flat top, Class I vs Class II)
+
+Everything but the n-dimensional array itself of the DGGS data model will be stored as attributes of that array.
+
+Example attributes of a DGGS data cube at a given resolution:
+
+```json
+{
+  "grid": 2,
+  "metadata": 5
+}
+```
 
 ## DGGS file format
 
