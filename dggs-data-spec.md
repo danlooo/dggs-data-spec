@@ -157,6 +157,39 @@ Resolution is a property of a collection of axes
 
 ## DGGS Data Model
 
+```mermaid
+classDiagram
+    class Polyhedron {
+        <<enumeration>>
+        tetrahedron
+        cube
+        octahedron
+        dodecahedron
+        icosahedron
+    }
+
+    class Polygon {
+        <<enumeration>>
+        triangle
+        quadliteral
+        pentagon
+        hexagon
+    }
+
+    class Transformation {
+        <<Abstract>>
+    }
+    class DGGRIDGeotransformation {
+        version:string
+    }
+    DGGRIDGeotransformation <|-- Transformation
+    class LinearGeotransformation {
+        go::number
+        g1::number
+    }
+    LinearGeotransformation <|-- Transformation
+```
+
 ```plantuml
 @startuml
 !define COMMENT(x) <color:grey>x</color>
