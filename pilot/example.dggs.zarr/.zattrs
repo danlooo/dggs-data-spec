@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "is_exaple": true,
+    "description": "Example data was generated from a function."
+  },
+  "grid": {
+    "transformations": [
+      {
+        "version": "7.8",
+        "type": "dggrid"
+      }
+    ],
+    "aperture": 4,
+    "grid_system": {
+      "rotation_lon": 11.25,
+      "polyhedron": "icosahedron",
+      "name": "ISEA4H",
+      "radius": 6371007.180918475,
+      "polygon": "hexagon",
+      "zone_identifier": "DGGRID-7.8-Q2DI",
+      "rotation_lat": 58.2825,
+      "projection": "Snyder Equal Area",
+      "rotation_azimuth": 0
+    },
+    "resolutions": [
+      {
+        "name": "spatial",
+        "resolution": 4,
+        "dimensions": [
+          "n",
+          "i",
+          "j"
+        ]
+      },
+      {
+        "name": "temporal",
+        "resolution": 1,
+        "dimensions": [
+          "time"
+        ]
+      }
+    ]
+  }
+}
