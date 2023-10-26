@@ -159,6 +159,7 @@ Example for a DGGRID grid with `dggs_res_spec` of 8 and PROJTRI zone identifiers
 
 ```json
 {
+  "name": "spatial",
   "dimensions": ["triangle", "x", "y"],
   "resolution": 8
 }
@@ -204,6 +205,7 @@ classDiagram
     }
 
     class Resolution {
+        name: string
         dimensions: string[]
         resolution: number
     }
@@ -245,7 +247,7 @@ classDiagram
     GridSystem "1" --> "1" ZoneIdentifier
 
     class Grid {
-        gridSystem: GridSystem
+        grid_system: GridSystem
         transformations: Transformation[] [1]
         resolutions: Resolution[]
         aperture: number
