@@ -146,6 +146,24 @@ Values MUST be sampled in accordance to the selected grid.
 DGGS data cubes are regular, i.e. there MUST NOT be missing values within the global bounding box.
 Values MAY be interpolated.
 
+## DGGS resolution
+
+A DGGS resolution is collection of dimensions and a corresponding number representing the resolution level.
+More detailed data cubes with a higher resolution have higher numbers.
+A DGGS grid MUST have one resolution on spatial dimensions defined.
+In addition, spatiotemporal DGGS grid MUST have one resolution on a temporal dimension defined.
+Each dimension MUST NOT be used multiple times in all resolution definitions.
+Only spatial or temporal dimensions SHOULD be used.
+
+Example for a DGGRID grid with `dggs_res_spec` of 8 and PROJTRI zone identifiers:
+
+```json
+{
+  "dimensions": ["triangle", "x", "y"],
+  "resolution": 8
+}
+```
+
 ## DGGS Pyramid
 
 A DGGS data cube pyramid is a collection of DGGS data cubes.
@@ -176,14 +194,21 @@ classDiagram
         hexagon
     }
 
+    class Resolution {
+        dimensions: string[]
+        resolution: number
+    }
+
     class Transformation {
         <<Abstract>>
         type: string
     }
+
     class DGGRIDGeotransformation {
         version:string
     }
     DGGRIDGeotransformation <|-- Transformation
+
     class LinearGeotransformation {
         gt0: number
         gt1: number
@@ -211,11 +236,15 @@ classDiagram
 
     class Grid {
         gridSystem: GridSystem
-        transformations: Transformation[] NOTE([1])
-        resolution: int
+        transformations: Transformation[] [1]
+        resolutions: Resolution[]
+
+        zone_id(lat, lon): number[]
+        geo(zone_id): (lon:number, lat:number)
     }
     Grid "1" --> "*" Transformation
     Grid "1" --> "1" GridSystem
+    Grid "1" --> "1..*" Resolution
 
     class DataCube {
         grid: Grid
