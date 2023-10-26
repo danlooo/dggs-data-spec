@@ -68,31 +68,27 @@ Zone identifiers:
 - MAY encode a hierarchical relationship between zones at different spatial resolutions, e.g. using prefix codes in Uber H3
 - MAY encode information about the angular direction to child zones (e.g. using Generalized balanced ternaries or Central Place Indexing [(Sahr 2013)](http://dx.doi.org/10.3138/cart.54.1.2018-0022)
 
-## Zone index
 
-A zone index is a bijective function $I:Z \mapsto M $ mapping all zone identifiers $z \in Z$ (labels) to unique numerical memory addresses $m \in M$.
-The memory adress is a n-tuple of nonnegative integers for n-dimensional zone identifiers.
-It is used in positional access of elements in the data array.
-An zone index defines in which order zone values are stored.
-Therefore, it defines the chunking of the data and influence loading time of the values.
+## DGGS Array Coordinates
 
-- Zones with similar memory addresses MUST be nearby in geographical space.
-- There SHOULD be one preferred zone index for each zone identifier system.
-- Zone indices SHOULD be compact in memory space i.e. almost all numbers $m$ within $[0, \max(m)]$ SHOULD be used. Space filling curves MAY be used here (e.g. Hilbert curve like index in Google S2)
+DGGS array coordinate is the position of a particular zone in a array of the DGGS data cube.
+It defines how the zones are stored in memory.
+This affects the chunking and loading time of the data.
+
+DGGS array coordinates MUST be cartesian non-negative integers.
+DGGS array coordinates MAY have one or many dimensions.
+Points nearby in geographical space SHOULD also be nearby using DGGS array coordinates.
 
 ![Net of an icosahedron](assets/icosahedron-net.png)
+
 **Figure 1**: Merging 2 faces of a polyhedron to one rectangular chart [(Mahdavi-Amiri et al. 2014)](http://dx.doi.org/10.1080/17538947.2014.927597).
 
-Memory addresses created by the zone index MUST describe rectangular grids.
-This is just a vector for 1D zone identifiers.
-Moreover, zone identifiers MAY describe zones as their position on the face of a polyhedron (e.g. DGGRID PROJTRI).
-Hereby, the surface of the polyhedron is subdivided in charts that are as rectangular as possible (See Figure 1).
-This allows to store DGGS data in n-dimensional arrays.
+# Grid conversion
 
-# Geotransformation
+Grid conversions are a sequence of bijective functions describing how to convert geographical coordinates to DGGS array coordinates and vice, versa.
+The grid conversion MAY be composed of multiple steps.
 
-A geotransformation is a sequence of bijective functions applied to the memory addresses of a DGGS data cube to return the center point of the corresponding cell in geographical coordinates.
-The inverse of the functions will be applied in reversed order to obtain the memory address from given geographical coordinates.
+The grid conversion SHOULD be compact in the positional array space, i.e. there SHOULD be (almost) no skipped array position.
 
 Example with one step of grids produced by DGGRID:
 
@@ -100,19 +96,18 @@ Example with one step of grids produced by DGGRID:
 [
   {
     "type": "dggrid",
-    "version": "7.8"
+    "version": "7.8",
+    "address_type" : "Q2DI"
   }
 ]
 ```
-
-The identity function MUST be applied is an empty sequence is provided.
-The parameter `type` MUST be provided in every geotransformation call.
+The parameter `type` MUST be provided in every grid conversion call.
 
 Notes:
 
 1.  The sequence is implemented as a JSON list, because JSON dictionaries are unordered.
 
-## DGGRID geotransformation
+## DGGRID grid conversion
 
 This will call DGGRID.
 Other required parameters will be inferred from the Grid object.
@@ -122,7 +117,7 @@ A error message MUST be raised if this was unsuccessful (DGGRID not installed, a
 | ------- | ------ | ---------------------------- |
 | version | string | Version of DGGRID to be used |
 
-## Linear geotransformation
+## Linear grid conversion
 
 This is an implementation of [GDAL Geotransform](https://gdal.org/tutorials/geotransforms_tut.html).
 
@@ -195,7 +190,7 @@ classDiagram
         hexagon
     }
 
-    class ZoneIdentifier {
+    class DGGRIDAddressType {
         <<enumeration>>
         GEO
         SEQNUM
@@ -210,17 +205,19 @@ classDiagram
         resolution: number
     }
 
-    class Transformation {
+    class GridConversion {
         <<Abstract>>
         type: string
     }
 
-    class DGGRIDGeotransformation {
+    class DGGRIDGridConversion {
         version:string
+        address_type: DGGRIDAddressType
     }
-    DGGRIDGeotransformation <|-- Transformation
+    DGGRIDGridConversion <|-- GridConversion
+    DGGRIDGridConversion "1" --> "1" DGGRIDAddressType
 
-    class LinearGeotransformation {
+    class LinearGridConversion {
         gt0: number
         gt1: number
         gt2: number
@@ -228,7 +225,7 @@ classDiagram
         gt4: number
         gt5: number
     }
-    LinearGeotransformation <|-- Transformation
+    LinearGridConversion <|-- GridConversion
 
     class GridSystem {
         name: string
@@ -238,7 +235,6 @@ classDiagram
         rotation_lon: float
         rotation_lat: float
         rotation_azimuth: float
-        zone_identifier: ZoneIdentifier
         projection: string
         global_bounding_polygon: string (WKT POLYGON)
     }
@@ -248,14 +244,14 @@ classDiagram
 
     class Grid {
         grid_system: GridSystem
-        transformations: Transformation[] [1]
+        transformations: GridConversion[] [1]
         resolutions: Resolution[]
         aperture: number
 
         zone_id(lat, lon): number[]
         geo(zone_id): (lon:number, lat:number)
     }
-    Grid "1" --> "*" Transformation
+    Grid "1" --> "*" GridConversion
     Grid "1" --> "1" GridSystem
     Grid "1" --> "1..*" Resolution
 
