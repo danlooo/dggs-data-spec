@@ -178,114 +178,56 @@ classDiagram
 
     class Transformation {
         <<Abstract>>
+        type: string
     }
     class DGGRIDGeotransformation {
         version:string
     }
     DGGRIDGeotransformation <|-- Transformation
     class LinearGeotransformation {
-        go::number
-        g1::number
+        gt0: number
+        gt1: number
+        gt2: number
+        gt3: number
+        gt4: number
+        gt5: number
     }
     LinearGeotransformation <|-- Transformation
-```
 
-```plantuml
-@startuml
-!define COMMENT(x) <color:grey>x</color>
-!define NOTE(x) <color:blue>x</color>
+    class GridSystem {
+        polyhedron: Polyhedron
+        polygon: Polygon
+        radius: float
+        rotation_lon: float
+        rotation_lat: float
+        rotation_azimuth: float
+        aperture: int
+        projection: string
+        global_bounding_polygon: string (WKT POLYGON)
+        name: string
+    }
+    GridSystem "1" --> "1" Polyhedron
+    GridSystem "1" --> "1" Polygon
 
-enum Polyhedron {
-    tetrahedron
-    cube
-    octahedron
-    dodecahedron
-    icosahedron
-}
+    class Grid {
+        gridSystem: GridSystem
+        transformations: Transformation[] NOTE([1])
+        resolution: int
+    }
+    Grid "1" --> "*" Transformation
+    Grid "1" --> "1" GridSystem
 
-enum Polygon {
-    triangle
-    quadliteral
-    pentagon
-    hexagon
-}
+    class DataCube {
+        grid: Grid
+        metadata: dict
+        data: n-dimensional array
+    }
+    DataCube "1" --> "1" Grid
 
-abstract Transformation {
-    COMMENT(Calculate geographical coordinates from indicies)
-    --
-    name: string
-}
-
-
-entity LinearTransformation {
-    COMMENT(Like GDAL geotransform)
-    GT0: float
-    GT1: float
-    GT2: float
-    GT3: float
-    GT4: float
-    GT5: float
-}
-
-LinearTransformation <|-- Transformation
-
-entity DGGRIDTransformation {
-    COMMENT(External shell call to DGGRID)
-    command: string
-    --
-    name: string
-}
-
-ExternalTransformation <|-- Transformation
-
-entity GridSystem {
-    COMMENT(Recipe to generate spatial grids)
-    polyhedron:Polyhedron
-    radius: fload
-    rotation_lon: float
-    rotation_lat: fload
-    rotation_azimuth: float
-    polygon: Polygon
-    aperture: int
-    projection: string
-    global_bounding_polygon: Object
-    --
-    name: string
-    command: string
-}
-
-GridSystem ||-- Polyhedron
-GridSystem ||-- Polygon
-
-entity Grid {
-    COMMENT(concrete tesselation)
-    gridSystem: GridSystem
-    transformations: Transformation[] NOTE([1])
-    resolution: int
-}
-
-Grid ||-- Transformation
-Grid ||- GridSystem
-
-
-entity DataCube {
-    COMMENT(Variables sampled at a specific grid)
-    grid: Grid
-    metadata: Object[]
-    data: n-dimensional array
-}
-
-DataCube ||-- Grid
-
-entity Pyramid {
-    COMMENT(Same data at different resolution)
-    COMMENT(within the same grid system)
-    datacubes: DataCube[]
-    resolutions: string[spatial, temporal]
-}
-
-Pyramid }|--  DataCube
-@enduml
+    class DataCubePyramid {
+        datacubes: DataCube[]
+    }
+   DataCubePyramid "1" --> "1..*" DataCube
 ```
 
 DGGS data model as an ER diagram.
