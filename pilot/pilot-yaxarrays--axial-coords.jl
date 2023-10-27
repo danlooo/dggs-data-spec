@@ -152,13 +152,13 @@ cell_cube_props = Dict(
             :rotation_lon => 11.25,
             :rotation_lat => 58.2825,
             :rotation_azimuth => 0,
-            :zone_identifier => "DGGRID-7.8-Q2DI",
             :projection => "Snyder Equal Area"
         ),
-        :transformations => [
+        :coordinate_conversions => [
             Dict(
                 :type => "dggrid",
-                :version => "7.8"
+                :version => "7.8",
+                :address_type => "Q2DI"
             )
         ],
         :resolutions => [

@@ -68,7 +68,6 @@ Zone identifiers:
 - MAY encode a hierarchical relationship between zones at different spatial resolutions, e.g. using prefix codes in Uber H3
 - MAY encode information about the angular direction to child zones (e.g. using Generalized balanced ternaries or Central Place Indexing [(Sahr 2013)](http://dx.doi.org/10.3138/cart.54.1.2018-0022)
 
-
 ## DGGS Array Coordinates
 
 DGGS array coordinate is the position of a particular zone in a array of the DGGS data cube.
@@ -83,12 +82,37 @@ Points nearby in geographical space SHOULD also be nearby using DGGS array coord
 
 **Figure 1**: Merging 2 faces of a polyhedron to one rectangular chart [(Mahdavi-Amiri et al. 2014)](http://dx.doi.org/10.1080/17538947.2014.927597).
 
-# Grid conversion
+# Coordinate conversion
 
-Grid conversions are a sequence of bijective functions describing how to convert geographical coordinates to DGGS array coordinates and vice, versa.
-The grid conversion MAY be composed of multiple steps.
+Coordinate conversions are a sequence of bijective functions describing how to convert WGS84 geographical coordinates to DGGS array coordinates (positions) and vice versa.
+Forward and backward coordinate conversion result in DGGS array coordinates and geographical coordinates, respectively.
 
-The grid conversion SHOULD be compact in the positional array space, i.e. there SHOULD be (almost) no skipped array position.
+```mermaid
+flowchart LR
+    geo["
+        Geographical coordinates
+
+        (lon, lat)
+    "]
+    dggs["
+        DGGS coordinates
+
+        e.g. PROTRI (face, x, y)
+    "]
+    array["
+        DGGS Array coordinates
+
+        non-negative integers
+        e.g. (i, j)
+    "]
+
+    geo -->|forward| dggs -->|forward| array
+    array -->|backward| dggs -->|backward| geo
+```
+
+Coordinate conversion MAY be composed of multiple steps.
+The coordinate conversion SHOULD be compact in the positional array space, i.e. there SHOULD be (almost) no skipped array position.
+Coordinate conversion function MUST be compatible with the selected GridSystem.
 
 Example with one step of grids produced by DGGRID:
 
@@ -97,27 +121,29 @@ Example with one step of grids produced by DGGRID:
   {
     "type": "dggrid",
     "version": "7.8",
-    "address_type" : "Q2DI"
+    "address_type": "Q2DI"
   }
 ]
 ```
-The parameter `type` MUST be provided in every grid conversion call.
+
+The parameter `type` MUST be provided in every coordinate conversion call.
 
 Notes:
 
 1.  The sequence is implemented as a JSON list, because JSON dictionaries are unordered.
 
-## DGGRID grid conversion
+## DGGRID coordinate conversion
 
 This will call DGGRID.
 Other required parameters will be inferred from the Grid object.
 A error message MUST be raised if this was unsuccessful (DGGRID not installed, ambiguous parameters, missing parameters, etc.)
 
-| name    | type   | description                  |
-| ------- | ------ | ---------------------------- |
-| version | string | Version of DGGRID to be used |
+| name         | type   | description                                                                                                                                          |
+| ------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| version      | string | Version of DGGRID to be used                                                                                                                         |
+| address_type | string | address type as used by DGGRID parameter as defined by `output_address_type` for forward and `input_address_type` for backward coordinate conversion |
 
-## Linear grid conversion
+## Linear coordinate conversion
 
 This is an implementation of [GDAL Geotransform](https://gdal.org/tutorials/geotransforms_tut.html).
 
@@ -205,19 +231,19 @@ classDiagram
         resolution: number
     }
 
-    class GridConversion {
+    class CoordinateConversion {
         <<Abstract>>
         type: string
     }
 
-    class DGGRIDGridConversion {
+    class DGGRIDCoordinateConversion {
         version:string
         address_type: DGGRIDAddressType
     }
-    DGGRIDGridConversion <|-- GridConversion
-    DGGRIDGridConversion "1" --> "1" DGGRIDAddressType
+    DGGRIDCoordinateConversion <|-- CoordinateConversion
+    DGGRIDCoordinateConversion "1" --> "1" DGGRIDAddressType
 
-    class LinearGridConversion {
+    class LinearCoordinateConversion {
         gt0: number
         gt1: number
         gt2: number
@@ -225,7 +251,7 @@ classDiagram
         gt4: number
         gt5: number
     }
-    LinearGridConversion <|-- GridConversion
+    LinearCoordinateConversion <|-- CoordinateConversion
 
     class GridSystem {
         name: string
@@ -240,18 +266,17 @@ classDiagram
     }
     GridSystem "1" --> "1" Polyhedron
     GridSystem "1" --> "1" Polygon
-    GridSystem "1" --> "1" ZoneIdentifier
 
     class Grid {
         grid_system: GridSystem
-        transformations: GridConversion[] [1]
+        transformations: CoordinateConversion[] [1]
         resolutions: Resolution[]
         aperture: number
 
         zone_id(lat, lon): number[]
         geo(zone_id): (lon:number, lat:number)
     }
-    Grid "1" --> "*" GridConversion
+    Grid "1" --> "*" CoordinateConversion
     Grid "1" --> "1" GridSystem
     Grid "1" --> "1..*" Resolution
 
@@ -273,16 +298,55 @@ Attributes above and below the line are required and optional, respectively.
 
 Notes:
 
-1.  Grid ISEA7H requires different (alternating) transformations at successive resolutions (pointy top vs flat top, Class I vs Class II)
+1. Some grids (e.g. ISEA7H) requires different coordinate conversions at successive resolutions (pointy top vs flat top, Class I vs Class II)
 
 Everything but the n-dimensional array itself of the DGGS data model will be stored as attributes of that array.
-
 Example attributes of a DGGS data cube at a given resolution:
 
 ```json
 {
-  "grid": 2,
-  "metadata": 5
+  "metadata": {
+    "is_exaple": true,
+    "description": "Example data was generated from a function."
+  },
+  "grid": {
+    "coordinate_conversions": [
+      {
+        "version": "7.8",
+        "address_type": "Q2DI",
+        "type": "dggrid"
+      }
+    ],
+    "aperture": 4,
+    "grid_system": {
+      "rotation_lon": 11.25,
+      "polyhedron": "icosahedron",
+      "name": "ISEA4H",
+      "radius": 6371007.180918475,
+      "polygon": "hexagon",
+      "rotation_lat": 58.2825,
+      "projection": "Snyder Equal Area",
+      "rotation_azimuth": 0
+    },
+    "resolutions": [
+      {
+        "name": "spatial",
+        "resolution": 4,
+        "dimensions": [
+          "n",
+          "i",
+          "j"
+        ]
+      },
+      {
+        "name": "temporal",
+        "resolution": 1,
+        "dimensions": [
+          "time"
+        ]
+      }
+    ]
+  }
 }
 ```
 
