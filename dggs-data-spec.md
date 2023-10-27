@@ -68,24 +68,26 @@ Zone identifiers:
 - MAY encode a hierarchical relationship between zones at different spatial resolutions, e.g. using prefix codes in Uber H3
 - MAY encode information about the angular direction to child zones (e.g. using Generalized balanced ternaries or Central Place Indexing [(Sahr 2013)](http://dx.doi.org/10.3138/cart.54.1.2018-0022)
 
-## DGGS Array Coordinates
+## Array Coordinates
 
-DGGS array coordinate is the position of a particular zone in a array of the DGGS data cube.
+The Array coordinate is the position of a particular zone in a array of the DGGS data cube.
 It defines how the zones are stored in memory.
 This affects the chunking and loading time of the data.
 
-DGGS array coordinates MUST be cartesian non-negative integers.
-DGGS array coordinates MAY have one or many dimensions.
-Points nearby in geographical space SHOULD also be nearby using DGGS array coordinates.
+Array coordinates MUST be cartesian non-negative integers.
+Array coordinates MAY have one or many dimensions.
+Points nearby in geographical space SHOULD also be nearby using  array coordinates.
 
 ![Net of an icosahedron](assets/icosahedron-net.png)
 
-**Figure 1**: Merging 2 faces of a polyhedron to one rectangular chart [(Mahdavi-Amiri et al. 2014)](http://dx.doi.org/10.1080/17538947.2014.927597).
+**Figure 1**: Merging 2 faces of a polyhedron to one rectangular chart towards getting cartesian coordinates [(Mahdavi-Amiri et al. 2014)](http://dx.doi.org/10.1080/17538947.2014.927597).
 
-# Coordinate conversion
+2D array coordinates are preferred in analyses using many bounding box queries e.g. in visualizations and convolutions.
 
-Coordinate conversions are a sequence of bijective functions describing how to convert (EPGS:4326, WGS 84) geographical coordinates to DGGS array coordinates (positions) and vice versa.
-Forward and backward coordinate conversion result in DGGS array coordinates and geographical coordinates, respectively.
+## Coordinate conversion
+
+Coordinate conversions are a sequence of bijective functions describing how to convert (EPGS:4326, WGS 84) geographical coordinates to  array coordinates (positions) and vice versa.
+Forward and backward coordinate conversion result in  array coordinates and geographical coordinates, respectively.
 
 ```mermaid
 flowchart LR
@@ -100,7 +102,7 @@ flowchart LR
         e.g. PROTRI (face, x, y)
     "]
     array["
-        DGGS Array coordinates
+         Array coordinates
 
         non-negative integers
         e.g. (i, j)
