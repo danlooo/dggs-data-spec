@@ -84,7 +84,7 @@ Points nearby in geographical space SHOULD also be nearby using DGGS array coord
 
 # Coordinate conversion
 
-Coordinate conversions are a sequence of bijective functions describing how to convert WGS84 geographical coordinates to DGGS array coordinates (positions) and vice versa.
+Coordinate conversions are a sequence of bijective functions describing how to convert (EPGS:4326, WGS 84) geographical coordinates to DGGS array coordinates (positions) and vice versa.
 Forward and backward coordinate conversion result in DGGS array coordinates and geographical coordinates, respectively.
 
 ```mermaid
@@ -95,7 +95,7 @@ flowchart LR
         (lon, lat)
     "]
     dggs["
-        DGGS coordinates
+        Zone identifier
 
         e.g. PROTRI (face, x, y)
     "]
@@ -176,7 +176,7 @@ In addition, spatiotemporal DGGS grid MUST have one resolution on a temporal dim
 Each dimension MUST NOT be used multiple times in all resolution definitions.
 Only spatial or temporal dimensions SHOULD be used.
 
-Example for a DGGRID grid with `dggs_res_spec` of 8 and PROJTRI zone identifiers:
+Example for a DGGRID grid with `dggs_res_spec` of 8 using PROJTRI zone identifiers:
 
 ```json
 {
@@ -303,12 +303,29 @@ Notes:
 Everything but the n-dimensional array itself of the DGGS data model will be stored as attributes of that array.
 Example attributes of a DGGS data cube at a given resolution:
 
+## Metadata
+
+Global and variable metadata MUST comply with [ESIP Attribute Convention for Data Discovery v1.3](https://wiki.esipfed.org/Attribute_Convention_for_Data_Discovery_1-3) whenever possible.
+If the attributes are not specified, they SHOULD be covered by the [CF Conventions v1.8](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.8/cf-conventions.html). 
+The meta data MUST be stored in the root group of the DGGS data model.
+They MUST be valid for all given resolution levels.
+
+This makes the DGGS data cube metadata compatible with [xcube](https://xcube.readthedocs.io/en/latest/cubespec.html).
+
+## DGGS file format
+
+A DGGS pyramid is stored as one file by mapping the DGGS pyramid class diagram to the [Common Data Model (CDM) V4](https://docs.unidata.ucar.edu/netcdf-java/current/userguide/common_data_model_overview.html#data-access-layer-object-model).
+This allows to save the DGGS pyramid in various file formats e.g. NetCDF 4, HDF5 and Zarr.
+DGGS data cubes MUST be stored in variables.
+DGGS data cubes having the same temporal resolution MUST be stored in the same CDM group.
+DGGS data cubes with a single spatiotemporal resolution MUST be stored in the root group.
+File names SHOULD contain the phrase `dggs` e.g. `example.dggs.zarr`.
+Required attrbutes MUST be stored as meta data in the files.
+Cloud optimized file formats allowing HTPP range requests e.g. zarr SHOULD be used.
+
+Example of attributes of one DGGS data cube:
 ```json
 {
-  "metadata": {
-    "is_exaple": true,
-    "description": "Example data was generated from a function."
-  },
   "grid": {
     "coordinate_conversions": [
       {
@@ -346,17 +363,10 @@ Example attributes of a DGGS data cube at a given resolution:
         ]
       }
     ]
-  }
+  },
+  "Conventions": "Attribute Convention for Data Discovery 1-3, CF Conventions v1.8]",
+  "keywords": "DGGS, example",
+  "title": "Example DGGS data cube",
+  "summary": "Data was generated from the function exp(cosd(lon)) + t * (lat / 90) and then transformed into a ISEA4H DGGS"
 }
 ```
-
-## DGGS file format
-
-A DGGS pyramid is stored as one file by mapping the DGGS pyramid class diagram to the [Common Data Model (CDM) V4](https://docs.unidata.ucar.edu/netcdf-java/current/userguide/common_data_model_overview.html#data-access-layer-object-model).
-This allows to save the DGGS pyramid in various file formats e.g. NetCDF 4, HDF5 and Zarr.
-DGGS data cubes MUST be stored in variables.
-DGGS data cubes having the same temporal resolution MUST be stored in the same CDM group.
-DGGS data cubes with a single spatiotemporal resolution MUST be stored in the root group.
-File names SHOULD contain the phrase `dggs` e.g. `example.dggs.zarr`.
-Required attrbutes MUST be stored as meta data in the files.
-Cloud optimized file formats allowing HTPP range requests e.g. zarr SHOULD be used.

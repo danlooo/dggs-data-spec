@@ -175,10 +175,10 @@ cell_cube_props = Dict(
         ],
         :aperture => 4
     ),
-    :metadata => Dict(
-        :is_exaple => true,
-        :description => "Example data was generated from a function."
-    )
+    :title => "Example DGGS data cube",
+    :summary => "Data was generated from the function exp(cosd(lon)) + t * (lat / 90) and then transformed into a ISEA4H DGGS",
+    :keywords => "DGGS, example",
+    :Conventions => "Attribute Convention for Data Discovery 1-3, CF Conventions v1.8]"
 )
 ds = Dataset(; properties=cell_cube_props, cell_cube)
 savedataset(ds; path="example.dggs.zarr", driver=:zarr, overwrite=true)
