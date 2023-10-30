@@ -193,9 +193,10 @@ Example for a DGGRID grid with `dggs_res_spec` of 8 using PROJTRI zone identifie
 A DGGS data cube pyramid is a collection of DGGS data cubes.
 The only difference of those DGGS data cubes is that they have at least different spatial resolutions.
 Different temporal resolutions MAY be created as well yielding spatiotemporal DGGS.
-Is so, all temporal resolutions MUST be created for all spatial resolutions (cross product).
+If so, all temporal resolutions MUST be created for all spatial resolutions (cross product).
 
-Resolution is a property of a collection of axes
+The pyramid is build by iterative downsampling to the next coarser resolutions.
+The algorithm being used SHOULD be noted in the meta data of the pyramid.
 
 ## DGGS Data Model
 
@@ -291,6 +292,7 @@ classDiagram
 
     class DataCubePyramid {
         datacubes: DataCube[]
+        metadata: dict
     }
    DataCubePyramid "1" --> "1..*" DataCube
 ```
