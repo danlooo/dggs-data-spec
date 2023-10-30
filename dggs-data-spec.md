@@ -76,7 +76,7 @@ This affects the chunking and loading time of the data.
 
 Array coordinates MUST be cartesian non-negative integers.
 Array coordinates MAY have one or many dimensions.
-Points nearby in geographical space SHOULD also be nearby using  array coordinates.
+Points nearby in geographical space SHOULD also be nearby using array coordinates.
 
 ![Net of an icosahedron](assets/icosahedron-net.png)
 
@@ -86,8 +86,8 @@ Points nearby in geographical space SHOULD also be nearby using  array coordinat
 
 ## Coordinate conversion
 
-Coordinate conversions are a sequence of bijective functions describing how to convert (EPGS:4326, WGS 84) geographical coordinates to  array coordinates (positions) and vice versa.
-Forward and backward coordinate conversion result in  array coordinates and geographical coordinates, respectively.
+Coordinate conversions are a sequence of bijective functions describing how to convert (EPGS:4326, WGS 84) geographical coordinates to array coordinates (positions) and vice versa.
+Forward and backward coordinate conversion result in array coordinates and geographical coordinates, respectively.
 
 ```mermaid
 flowchart LR
@@ -263,7 +263,7 @@ classDiagram
         rotation_lon: float
         rotation_lat: float
         rotation_azimuth: float
-        projection: string
+        projection: string (PROJ)
         global_bounding_polygon: string (WKT POLYGON)
     }
     GridSystem "1" --> "1" Polyhedron
@@ -308,7 +308,7 @@ Example attributes of a DGGS data cube at a given resolution:
 ## Metadata
 
 Global and variable metadata MUST comply with [ESIP Attribute Convention for Data Discovery v1.3](https://wiki.esipfed.org/Attribute_Convention_for_Data_Discovery_1-3) whenever possible.
-If the attributes are not specified, they SHOULD be covered by the [CF Conventions v1.8](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.8/cf-conventions.html). 
+If the attributes are not specified, they SHOULD be covered by the [CF Conventions v1.8](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.8/cf-conventions.html).
 The meta data MUST be stored in the root group of the DGGS data model.
 They MUST be valid for all given resolution levels.
 
@@ -326,6 +326,7 @@ Required attrbutes MUST be stored as meta data in the files.
 Cloud optimized file formats allowing HTPP range requests e.g. zarr SHOULD be used.
 
 Example of attributes of one DGGS data cube:
+
 ```json
 {
   "grid": {
@@ -344,25 +345,19 @@ Example of attributes of one DGGS data cube:
       "radius": 6371007.180918475,
       "polygon": "hexagon",
       "rotation_lat": 58.2825,
-      "projection": "Snyder Equal Area",
+      "projection": "+isea",
       "rotation_azimuth": 0
     },
     "resolutions": [
       {
         "name": "spatial",
         "resolution": 4,
-        "dimensions": [
-          "n",
-          "i",
-          "j"
-        ]
+        "dimensions": ["n", "i", "j"]
       },
       {
         "name": "temporal",
         "resolution": 1,
-        "dimensions": [
-          "time"
-        ]
+        "dimensions": ["time"]
       }
     ]
   },
