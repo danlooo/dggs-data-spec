@@ -116,6 +116,10 @@ Coordinate conversion MAY be composed of multiple steps.
 The coordinate conversion SHOULD be compact in the positional array space, i.e. there SHOULD be (almost) no skipped array position.
 Coordinate conversion function MUST be compatible with the selected GridSystem.
 
+The last step of the coordinate conversion sequence MAY be an array of linear coordinate conversions.
+This MUST be modelled using an additional array coordinate dimension.
+For example, there are 2 intuitive array coordinate grids using DGGRID Q2DI on a ISEA4T grid resulting in array coordinates (quad_n, quad_i, quad_j, tiangle_grid), because there are two triangles forming a quad.
+
 Example with one step of grids produced by DGGRID:
 
 ```json
@@ -130,9 +134,7 @@ Example with one step of grids produced by DGGRID:
 
 The parameter `type` MUST be provided in every coordinate conversion call.
 
-Notes:
-
-1.  The sequence is implemented as a JSON list, because JSON dictionaries are unordered.
+Note: The sequence is implemented as a JSON list, because JSON dictionaries are unordered.
 
 ## DGGRID coordinate conversion
 
