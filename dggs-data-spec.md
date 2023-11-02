@@ -70,7 +70,7 @@ Zone identifiers:
 
 ## Array Coordinates
 
-The Array coordinate is the position of a particular zone in a array of the DGGS data cube.
+The Array coordinate is the center position of a particular zone in a array of the DGGS data cube.
 It defines how the zones are stored in memory.
 This affects the chunking and loading time of the data.
 
@@ -160,6 +160,16 @@ This is an implementation of [GDAL Geotransform](https://gdal.org/tutorials/geot
 | gt4  | number | column rotation (typically zero).                                          |
 | gt5  | number | n-s pixel resolution / pixel height (negative value for a north-up image). |
 
+## Grid staggering
+
+Values can be assigned at multiple locations of the cell.
+For example, in many non-hydrostatic climate models like ICON, temperature is located at the centers, wind velocity components at the edges, and wind vorticity at the vertices of the cell [(Wan et al. 2013)](https://doi.org/10.5194/gmd-6-735-2013).
+
+Grid staggering MAY be archived by mixing cell shapes:
+Vertices of hexagonal cells are center points of the triangular grid at the same resolution in ISEA grids of aperture 4.
+
+The DGGS SHOULD allow the implementation of staggered Arakawa grids of type A-E [(Arakawa and Lamb 1977)](https://doi.org/10.1016/B978-0-12-460817-7.50009-4).
+
 ## DGGS Data Cube
 
 A (regular) DGGS data cube is an n-dimensional array to store values of variables across the globe.
@@ -194,6 +204,7 @@ Example for a DGGRID grid with `dggs_res_spec` of 8 using PROJTRI zone identifie
 
 A DGGS data cube pyramid is a collection of DGGS data cubes.
 The only difference of those DGGS data cubes is that they have at least different spatial resolutions.
+
 Different temporal resolutions MAY be created as well yielding spatiotemporal DGGS.
 If so, all temporal resolutions MUST be created for all spatial resolutions (cross product).
 
